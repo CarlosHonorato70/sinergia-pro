@@ -1,0 +1,18 @@
+/* Estilos específicos para TeletherapyCard.js */
+
+.teletherapy-card {
+    /* Estilos base em App.css */
+}
+
+.teletherapy-card h3 {
+    color: #9C27B0;
+    margin-top: 0;
+}
+
+.teletherapy-card p {
+    margin: 5px 0;
+}
+
+.room-details a {
+    font-size: 0.9em;
+}

@@ -1,0 +1,171 @@
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.App-header {
+  background-color: #6A1B9A; /* Roxo Escuro */
+  padding: 20px;
+  color: white;
+  margin-bottom: 20px;
+}
+
+.App-main {
+  padding: 0 20px;
+}
+
+.patient-dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.patient-header {
+  text-align: left;
+  margin-bottom: 30px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #E0E0E0;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr; /* Teletherapy Card (fixo) e Diary Viewer (flexível) */
+  gap: 30px;
+  text-align: left;
+}
+
+.grid-item {
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #FFFFFF;
+}
+
+/* Estilos para o TeletherapyCard */
+.teletherapy-card {
+  border: 1px solid #9C27B0;
+}
+
+.start-session-btn {
+  background-color: #9C27B0;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 15px;
+  transition: background-color 0.3s;
+}
+
+.start-session-btn:hover:not(:disabled) {
+  background-color: #6A1B9A;
+}
+
+.start-session-btn:disabled {
+  background-color: #CCCCCC;
+  cursor: not-allowed;
+}
+
+.room-details {
+  margin-top: 20px;
+  padding: 10px;
+  border-top: 1px dashed #E0E0E0;
+}
+
+.room-details a {
+  color: #9C27B0;
+  word-break: break-all;
+}
+
+.note {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 5px;
+}
+
+/* Estilos para o DiaryViewer */
+.diary-viewer {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container {
+  margin-bottom: 30px;
+  padding: 20px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+}
+
+.analysis-section {
+  margin-bottom: 30px;
+  padding: 20px;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  background-color: #F3E5F5; /* Fundo levemente roxo */
+}
+
+.analysis-btn {
+  background-color: #4CAF50; /* Verde para Análise/Ação */
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-bottom: 15px;
+  transition: background-color 0.3s;
+}
+
+.analysis-btn:hover:not(:disabled) {
+  background-color: #388E3C;
+}
+
+.analysis-result {
+  border-top: 1px dashed #9C27B0;
+  padding-top: 15px;
+}
+
+.analysis-result ul {
+  list-style-type: disc;
+  padding-left: 20px;
+}
+
+.risk-moderado {
+  color: #FF9800;
+  font-weight: bold;
+}
+
+.risk-alto {
+  color: #F44336;
+  font-weight: bold;
+}
+
+.diary-entries {
+  margin-top: 20px;
+}
+
+.diary-entry-card {
+  border: 1px solid #E0E0E0;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background-color: #FAFAFA;
+}
+
+.diary-entry-card summary {
+  cursor: pointer;
+  font-weight: bold;
+  color: #6A1B9A;
+}
+
+/* Estilos para os componentes individuais */
+.diary-module {
+  /* Estilos específicos para o módulo do diário */
+}
+
+.teletherapy-module {
+  /* Estilos específicos para o módulo de teleterapia */
+}
+
+/* Estilos para o Agente de Marketing */
+@import url('./components/MarketingAgent.css');

@@ -1,0 +1,34 @@
+/* Estilos específicos para DiaryViewer.js */
+
+.diary-viewer h3 {
+    color: #9C27B0;
+    margin-top: 0;
+}
+
+.analysis-section {
+    /* Estilos base em App.css */
+}
+
+.analysis-result {
+    /* Estilos base em App.css */
+}
+
+.analysis-result ul {
+    margin-top: 5px;
+}
+
+.diary-entries h4 {
+    color: #6A1B9A;
+    border-bottom: 1px solid #E0E0E0;
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+.diary-entry-card {
+    /* Estilos base em App.css */
+}
+
+.diary-entry-card p {
+    margin: 3px 0;
+    font-size: 0.95em;
+}

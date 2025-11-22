@@ -1,0 +1,19 @@
+/* Estilos específicos para PatientDashboard.js */
+
+.patient-dashboard {
+    /* Já estilizado em App.css */
+}
+
+.patient-header h2 {
+    color: #9C27B0;
+    margin-bottom: 5px;
+}
+
+.patient-header p {
+    margin: 2px 0;
+    color: #666;
+}
+
+.dashboard-grid {
+    /* Já estilizado em App.css */
+}

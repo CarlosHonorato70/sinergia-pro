@@ -1,7 +1,9 @@
 import React from 'react';
 import PatientDashboard from './components/PatientDashboard';
 import MarketingAgent from './components/MarketingAgent';
+import MarketingPerformanceAnalyzer from './components/MarketingPerformanceAnalyzer';
 
+import './components/MarketingPerformanceAnalyzer.css';
 import './App.css'; // Para estilos globais
 
 function App() {
@@ -13,6 +15,7 @@ function App() {
       <main className="App-main">
         <PatientDashboard />
         <MarketingAgent />
+        <MarketingPerformanceAnalyzer />
       </main>
     </div>
   );

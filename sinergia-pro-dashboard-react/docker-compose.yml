@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./sinergia-pro-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./sinergia_pro.db
+      - SECRET_KEY=sua_chave_secreta_super_segura_2024
+      - API_PORT=8000
+    volumes:
+      - ./sinergia-pro-backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./sinergia-pro-dashboard-react
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000/api
+    depends_on:
+      - backend
+    volumes:
+      - ./sinergia-pro-dashboard-react:/app
+      - /app/node_modules
+
+networks:
+  default:
+    name: sinergia-pro-network

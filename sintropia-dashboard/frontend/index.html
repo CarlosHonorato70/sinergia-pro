@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sintropia Pro Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🎯 Sintropia Pro Dashboard</h1>
+                <p>Gerenciador de Serviços Local</p>
+            </div>
+            <div class="header-actions">
+                <button id="startAllBtn" class="btn btn-success">▶️ Iniciar Tudo</button>
+                <button id="stopAllBtn" class="btn btn-danger">⏹️ Parar Tudo</button>
+                <button id="refreshBtn" class="btn btn-info">🔄 Atualizar</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Status Cards -->
+            <section class="services-grid" id="servicesContainer">
+                <!-- Serviços serão carregados aqui -->
+            </section>
+
+            <!-- Logs Section -->
+            <section class="logs-section">
+                <h2>📋 Logs dos Serviços</h2>
+                <div class="logs-container">
+                    <div class="log-tab-buttons">
+                        <button class="log-tab active" data-service="prontuario">Prontuário</button>
+                        <button class="log-tab" data-service="predictive">Análise Preditiva</button>
+                        <button class="log-tab" data-service="teletherapy">Teleterapia</button>
+                    </div>
+                    <div class="log-content" id="logContent">
+                        <pre id="logText">Selecione um serviço para ver os logs...</pre>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>© 2025 Sintropia Pro - Dashboard Local</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

@@ -25,7 +25,7 @@ def google_login(email: str, name: str | None = None, db: Session = Depends(get_
         db.refresh(user)
 
     # BLOQUEIO DE USUÁRIOS PENDENTES
-    if user.role == 'pending' or user.is_approved is False:
+    if user.role == 'pending' or user.is_approved == False:
         raise HTTPException(status_code=403, detail='Aguarde aprovação do Administrador Master.')
 
     # BLOQUEIO DE USUÁRIOS REJEITADOS

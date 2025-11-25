@@ -44,7 +44,7 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Email ou senha inválidos")
 
     # BLOQUEIO DE USUÁRIOS PENDENTES
-    if user.is_approved is False:
+    if user.is_approved == False:
         raise HTTPException(status_code=403, detail="Seu cadastro ainda não foi aprovado.")
 
     # BLOQUEIO DE USUÁRIOS REJEITADOS

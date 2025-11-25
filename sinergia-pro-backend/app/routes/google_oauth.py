@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.database.connection import get_db
@@ -11,17 +11,26 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 def google_login(email: str, name: str | None = None, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == email).first()
 
-    # Se email nunca existiu → criar como paciente por padrão
+    # Se email nunca existiu → criar como pendente
     if not user:
         user = User(
             email=email,
             password=hash_password("oauth_google"),
             name=name,
-            role="patient"  # padrão seguro
+            role="pending",
+            is_approved=False
         )
         db.add(user)
         db.commit()
         db.refresh(user)
+
+    # BLOQUEIO DE USUÁRIOS PENDENTES
+    if user.role == 'pending' or user.is_approved is False:
+        raise HTTPException(status_code=403, detail='Aguarde aprovação do Administrador Master.')
+
+    # BLOQUEIO DE USUÁRIOS REJEITADOS
+    if user.role == 'rejected':
+        raise HTTPException(status_code=403, detail='Cadastro rejeitado pelo Administrador Master.')
 
     token = create_access_token({"sub": user.email, "role": user.role})
 
@@ -35,13 +44,3 @@ def google_login(email: str, name: str | None = None, db: Session = Depends(get_
             "role": user.role
         }
     }
-
-# GOOGLE LOGIN BLOQUEIO DE PENDENTES/REJEITADOS
-if user.role == 'pending' or user.is_approved == False:
- raise HTTPException(status_code=403, detail='Aguarde aprovação do Administrador Master.')
-if user.role == 'rejected':
- raise HTTPException(status_code=403, detail='Cadastro rejeitado pelo Administrador Master.')
-
-# DEFINIR GOOGLE USER COMO PENDING
-user.role = 'pending'
-user.is_approved = False

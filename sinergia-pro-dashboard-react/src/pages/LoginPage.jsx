@@ -1,103 +1,150 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { apiCall } from '../config/api';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const { handleLogin } = useContext(AuthContext);
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
 
+    if (!email || !password) {
+      setError('Por favor, preencha todos os campos.');
+      return;
+    }
+
+    setLoading(true);
     try {
-      const response = await apiCall('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
+      const response = await axios.post('http://localhost:8000/api/auth/login', {
+        email,
+        password,
       });
 
-      handleLogin(response.user, response.access_token);
+      login(response.data.user, response.data.access_token);
       navigate('/dashboard');
     } catch (err) {
-      setError('❌ Email ou senha inválidos');
+      setError(err.response?.data?.detail || 'Erro ao fazer login.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '40px', maxWidth: '400px', width: '100%' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#0066CC', textAlign: 'center', marginBottom: '8px' }}>
-          Sinergia Pro
-        </h1>
-        <p style={{ color: '#666', textAlign: 'center', marginBottom: '32px' }}>
-          Saúde Mental com IA
-        </p>
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <h2 style={styles.headerText}>Faça login na sua conta</h2>
 
-        {error && (
-          <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '14px' }}>
-            {error}
-          </div>
-        )}
+        {error && <p style={styles.errorMessage}>{error}</p>}
 
-        <form onSubmit={handleSubmit}>
-          <Input
-            label="Email"
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <input
             type="email"
+            placeholder="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
-            required
+            style={styles.input}
+            disabled={loading}
           />
-
-          <Input
-            label="Senha"
+          <input
             type="password"
+            placeholder="Senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Sua senha"
-            required
+            style={styles.input}
+            disabled={loading}
           />
 
-          <Button
-            variant="primary"
-            size="lg"
-            type="submit"
-            disabled={loading}
-            style={{ width: '100%', marginBottom: '12px' }}
-          >
-            {loading ? '⏳ Entrando...' : '✓ Entrar'}
-          </Button>
-
-          <Button
-            variant="outline"
-            size="lg"
-            type="button"
-            onClick={() => {
-              setEmail('terapeuta@test.com');
-              setPassword('senha123');
-            }}
-            style={{ width: '100%' }}
-          >
-            👨‍⚕️ Demo Terapeuta
-          </Button>
+          <button type="submit" style={styles.loginButton} disabled={loading}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
         </form>
 
-        <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', marginTop: '16px' }}>
-          Não tem conta? <Link to="/register" style={{ color: '#0066CC', textDecoration: 'none', fontWeight: 'bold' }}>Cadastre-se aqui</Link>
+        <p style={styles.registerText}>
+          Primeira vez?{' '}
+          <Link to="/register" style={styles.registerLink}>Cadastre-se</Link>
         </p>
+
+        <Link to="/forgot-password" style={styles.forgotPasswordLink}>
+          Recuperar Senha
+        </Link>
       </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: '100vh',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    background: 'linear-gradient(135deg, #D5C0EA, #8A2BE2, #FFDAB9)',
+    padding: '20px',
+    boxSizing: 'border-box',
+  },
+  card: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    padding: '40px',
+    borderRadius: '20px',
+    maxWidth: '450px',
+    width: '100%',
+    textAlign: 'center',
+  },
+  headerText: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    marginBottom: '20px',
+    color: '#333',
+  },
+  errorMessage: {
+    color: '#f44336',
+    marginBottom: '15px',
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '15px',
+    marginBottom: '20px',
+  },
+  input: {
+    padding: '12px 15px',
+    borderRadius: '10px',
+    border: '1px solid #ddd',
+    fontSize: '16px',
+  },
+  loginButton: {
+    padding: '15px',
+    background: '#8A2BE2',
+    border: 'none',
+    borderRadius: '10px',
+    color: 'white',
+    fontSize: '18px',
+    cursor: 'pointer',
+    marginTop: '10px',
+  },
+  registerText: {
+    marginTop: '20px',
+    fontSize: '14px',
+  },
+  registerLink: {
+    color: '#8A2BE2',
+    fontWeight: 'bold',
+    textDecoration: 'none',
+  },
+  forgotPasswordLink: {
+    marginTop: '10px',
+    display: 'block',
+    color: '#8A2BE2',
+    textDecoration: 'none',
+    fontSize: '14px',
+  },
+};
 
 export default LoginPage;

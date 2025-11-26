@@ -1,14 +1,13 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.routes import auth_router, appointments_router
-from app.routes import admin_master
+from app.routes import auth_router, appointments_router, admin_master_router
 from app.database.connection import Base, engine
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
 
+# Middleware CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,10 +16,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router)
-app.include_router(appointments_router)
-app.include_router(admin_master.router, prefix="/api/admin", tags=["Admin Master"])
+# Rotas
+app.include_router(auth_router, prefix="/api/auth")
+app.include_router(appointments_router, prefix="/api/appointments")
+app.include_router(admin_master_router)
 
 @app.get("/")
-def root():
-    return {"message": "API Sinergia funcionando!"}
+def read_root():
+    return {"message": "API Sinergia Pro funcionando!"}

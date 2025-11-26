@@ -1,92 +1,109 @@
-from fastapi import APIRouter, Depends, HTTPException
+﻿from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from typing import List
+
 from app.database.connection import get_db
 from app.models.user import User
+from app.schemas.user import UserResponse
 from app.utils.auth import get_current_user
 
-router = APIRouter(tags=["admin"])
+# 1. Router FastAPI com prefix "/api/admin"
+router = APIRouter(prefix="/api/admin", tags=["admin"])
 
+# 5. Schema Pydantic para aprovação de usuário
 class ApproveUserRequest(BaseModel):
     new_role: str
 
-class UpdateRoleRequest(BaseModel):
-    new_role: str
+# 2. Função verify_master() que valida se o usuário é master
+def verify_master(current_user: dict):
+    """Valida se o usuário tem role 'master'"""
+    if not current_user or current_user.get("role") != "master":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas usuários master podem realizar esta ação.")
 
-def require_master(current_user: str = Depends(get_current_user), db: Session = Depends(get_db)):
-    """Verifica se o usuário atual é master"""
-    user = db.query(User).filter(User.email == current_user).first()
-    if not user or user.role != "master":
-        raise HTTPException(
-            status_code=403,
-            detail="Acesso permitido somente ao Administrador Master."
-        )
-    return user
+# 3. Endpoints: GET /all-users - listar todos os usuários
+@router.get("/all-users", response_model=List[UserResponse])
+def get_all_users(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """
+    Lista todos os usuários do sistema. Apenas usuários master podem acessar.
+    """
+    verify_master(current_user)
 
-@router.get("/pending-users")
-def get_pending_users(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_master)
-):
-    """Lista todos os usuários pendentes de aprovação"""
-    pending = db.query(User).filter(User.is_approved == False).all()
-    return pending
+    # Força recarregar do banco de dados
+    db.expunge_all()
 
+    users = db.query(User).all()
+    return users
+
+# 3. Endpoints: GET /pending-users - listar usuários pendentes de aprovação
+@router.get("/pending-users", response_model=List[UserResponse])
+def get_pending_users(db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """
+    Lista usuários pendentes de aprovação. Apenas usuários master podem acessar.
+    """
+    verify_master(current_user)
+
+    # Força recarregar do banco de dados
+    db.expunge_all()
+
+    pending_users = db.query(User).filter(User.is_approved == False).all()
+    return pending_users
+
+# 3. Endpoints: POST /approve-user/{user_id} - aprovar usuário com new_role no body (JSON)
 @router.post("/approve-user/{user_id}")
-def approve_user(
-    user_id: int,
-    request: ApproveUserRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_master)
-):
-    """Aprova um usuário pendente"""
-    valid_roles = ["admin", "therapist", "patient"]
-    if request.new_role not in valid_roles:
-        raise HTTPException(status_code=400, detail="Role inválida.")
-    
+def approve_user(user_id: int, request: ApproveUserRequest, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """
+    Aprova um usuário e atribui uma nova role. Apenas usuários master podem realizar esta ação.
+    A nova role deve ser fornecida no corpo da requisição (JSON).
+    """
+    verify_master(current_user)
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-    
-    user.role = request.new_role
+
     user.is_approved = True
-    db.commit()
-    db.refresh(user)
-    return {"message": "Usuário aprovado com sucesso.", "user": user}
-
-@router.post("/reject-user/{user_id}")
-def reject_user(
-    user_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_master)
-):
-    """Rejeita um usuário pendente"""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-    
-    user.role = "rejected"
-    user.is_approved = False
-    db.commit()
-    return {"message": "Usuário rejeitado."}
-
-@router.post("/update-role/{user_id}")
-def update_role(
-    user_id: int,
-    request: UpdateRoleRequest,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(require_master)
-):
-    """Atualiza a role de um usuário"""
-    valid_roles = ["admin", "therapist", "patient", "pending"]
-    if request.new_role not in valid_roles:
-        raise HTTPException(status_code=400, detail="Role inválida.")
-    
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
-    
     user.role = request.new_role
     db.commit()
+
+    # Força refresh do objeto
     db.refresh(user)
-    return {"message": "Role atualizada com sucesso.", "user": user}
+    db.expunge_all()
+
+    return {"message": f"Usuário {user.email} aprovado com sucesso e role '{user.role}' atribuído."}
+
+# 3. Endpoints: POST /reject-user/{user_id} - rejeitar usuário
+@router.post("/reject-user/{user_id}")
+def reject_user(user_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """
+    Rejeita um usuário (deleta da base de dados). Apenas usuários master podem realizar esta ação.
+    """
+    verify_master(current_user)
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    db.delete(user)
+    db.commit()
+    db.expunge_all()
+
+    return {"message": f"Usuário {user.email} rejeitado e deletado com sucesso."}
+
+# 3. Endpoints: DELETE /delete-user/{user_id} - deletar usuário
+@router.delete("/delete-user/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+    """
+    Deleta um usuário do sistema. Apenas usuários master podem realizar esta ação.
+    """
+    verify_master(current_user)
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado.")
+
+    db.delete(user)
+    db.commit()
+    db.expunge_all()
+
+    return {"message": f"Usuário {user.email} deletado com sucesso."}

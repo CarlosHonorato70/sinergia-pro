@@ -1,4 +1,4 @@
-import bcrypt
+﻿import bcrypt
 import jwt
 import os
 from datetime import datetime, timedelta
@@ -35,27 +35,42 @@ def decode_token(token: str):
     except:
         return None
 
-def get_current_user(authorization: str = Header(None)):
+def get_current_user(authorization: str = Header(None, alias="Authorization")):
     """
     Extrai o usuário do header Authorization.
     Esperado formato: "Bearer <token>"
+    Retorna um dicionário com o payload do token
     """
     if not authorization:
         raise HTTPException(status_code=401, detail="Token não fornecido")
-    
+
     try:
         scheme, token = authorization.split()
         if scheme.lower() != "bearer":
             raise HTTPException(status_code=401, detail="Esquema inválido")
     except ValueError:
         raise HTTPException(status_code=401, detail="Formato de token inválido")
-    
+
     payload = decode_token(token)
     if not payload:
         raise HTTPException(status_code=401, detail="Token inválido ou expirado")
-    
+
     user_id = payload.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Token sem user_id")
+
+    # Retorna o payload do token (que contém sub e role)
+    return payload
+
+
+def verify_master(current_user):
+    """Verifica se o usuário é master"""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Usuário não autenticado")
     
-    return user_id
+    role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, 'role', None)
+    
+    if role != "master":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas Master pode executar esta ação.")
+    
+    return True

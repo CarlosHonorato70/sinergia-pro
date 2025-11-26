@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+﻿from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database.connection import Base, engine
 from app.routes.auth import router as auth_router
 from app.routes.appointments import router as appointments_router
+from app.routes.admin_master import router as admin_master_router
 import os
 from dotenv import load_dotenv
 
@@ -30,6 +31,7 @@ app.add_middleware(
 # Rotas
 app.include_router(auth_router)
 app.include_router(appointments_router)
+app.include_router(admin_master_router)
 
 @app.get("/")
 def root():

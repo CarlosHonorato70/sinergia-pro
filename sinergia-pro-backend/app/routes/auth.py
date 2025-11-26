@@ -1,13 +1,13 @@
-from fastapi import APIRouter, HTTPException, Depends
+﻿from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from datetime import timedelta
 
 from app.database.connection import get_db
 from app.models.user import User
 from app.schemas.user import UserLogin, UserCreate, UserResponse
-from app.utils.auth import verify_password, hash_password, create_access_token
+from app.utils.auth import verify_password, hash_password, create_access_token, get_current_user
 
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(tags=["auth"])
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
@@ -53,7 +53,7 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 
     expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     token = create_access_token(
-        {"sub": user.email, "role": user.role},
+        {"sub": str(user.id), "role": user.role},
         expires
     )
 
@@ -64,6 +64,26 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
             "id": user.id,
             "email": user.email,
             "name": user.name,
-            "role": user.role
+            "role": user.role,
+            "is_approved": user.is_approved
         }
     }
+
+@router.get("/users/me")
+def get_current_user_info(current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Retorna as informações do usuário autenticado"""
+    user_id = int(current_user["sub"])
+    user = db.query(User).filter(User.id == user_id).first()
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    
+    return {
+        "id": user.id,
+        "email": user.email,
+        "name": user.name,
+        "role": user.role,
+        "is_approved": user.is_approved
+    }
+
+# Router exportado automaticamente como 'router'

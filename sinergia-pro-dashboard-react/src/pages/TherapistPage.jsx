@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Button } from '../components/Button';
@@ -13,15 +13,23 @@ function TherapistPage() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [patients, setPatients] = useState([
     { id: 1, name: 'Ana Souza', lastSession: '2025-11-19', nextSession: '2025-11-21', status: 'ativo' },
-    { id: 2, name: 'João Silva', lastSession: '2025-11-18', nextSession: '2025-11-24', status: 'ativo' },
+    { id: 2, name: 'Joao Silva', lastSession: '2025-11-18', nextSession: '2025-11-24', status: 'ativo' },
     { id: 3, name: 'Maria Santos', lastSession: '2025-11-17', nextSession: '2025-11-26', status: 'parado' },
   ]);
 
   const [notifications] = useState([
-    { id: 1, type: 'sessão', message: 'Sessão com Ana Souza em 1 hora', timestamp: '09:00', read: false },
-    { id: 2, type: 'diário', message: 'João Silva não registrou diário há 3 dias', timestamp: '08:30', read: false },
+    { id: 1, type: 'sessao', message: 'Sessao com Ana Souza em 1 hora', timestamp: '09:00', read: false },
+    { id: 2, type: 'diario', message: 'Joao Silva nao registrou diario ha 3 dias', timestamp: '08:30', read: false },
     { id: 3, type: 'risco', message: 'Alerta: Maria Santos com risco elevado', timestamp: '07:00', read: false },
   ]);
+
+  useEffect(() => {
+    // VERIFICA SE ESTA APROVADO
+    if (user && !user.is_approved) {
+      navigate('/dashboard');
+      return;
+    }
+  }, [user, navigate]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -39,23 +47,35 @@ function TherapistPage() {
   };
 
   const handleViewProntuario = (patientId) => {
-    navigate(`/prontuario/${patientId}`);
+    navigate(`/therapist/prontuario/${patientId}`);
   };
 
   const handleViewAnalysis = (patientId) => {
-    navigate(`/analise-preditiva/${patientId}`);
+    navigate(`/therapist/analise/${patientId}`);
   };
 
   const handleStartTeletherapy = (patientId) => {
-    navigate(`/teleterapia/${patientId}`);
+    navigate(`/therapist/teleterapia/${patientId}`);
+  };
+
+  const handleNewProntuario = () => {
+    navigate('/therapist/novo-prontuario');
+  };
+
+  const handleAnalytics = () => {
+    navigate('/therapist/analytics');
+  };
+
+  const handleVoltar = () => {
+    navigate('/dashboard');
   };
 
   const getNotificationIcon = (type) => {
     switch(type) {
-      case 'sessão': return '📅';
-      case 'diário': return '📔';
-      case 'risco': return '⚠️';
-      default: return '🔔';
+      case 'sessao': return 'Sessao';
+      case 'diario': return 'Diario';
+      case 'risco': return 'Alerta';
+      default: return 'Notificacao';
     }
   };
 
@@ -64,8 +84,8 @@ function TherapistPage() {
       <header style={{ backgroundColor: 'white', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              ← Voltar
+            <Button variant="outline" onClick={handleVoltar}>
+              Voltar
             </Button>
             <div>
               <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#0066CC' }}>Meus Pacientes</h1>
@@ -73,7 +93,6 @@ function TherapistPage() {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            {/* Notification Bell */}
             <div style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
@@ -85,7 +104,7 @@ function TherapistPage() {
                   cursor: 'pointer',
                 }}
               >
-                🔔
+                Notificacoes
                 {unreadCount > 0 && (
                   <span style={{
                     position: 'absolute',
@@ -107,7 +126,6 @@ function TherapistPage() {
                 )}
               </button>
 
-              {/* Notification Dropdown */}
               {showNotifications && (
                 <div style={{
                   position: 'absolute',
@@ -122,7 +140,7 @@ function TherapistPage() {
                   overflowY: 'auto',
                 }}>
                   <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
-                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Notificações</h3>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>Notificacoes</h3>
                   </div>
 
                   <div>
@@ -152,8 +170,8 @@ function TherapistPage() {
               )}
             </div>
 
-            <Button variant="secondary" size="lg" onClick={() => navigate('/analytics')}>
-              📊 Analytics
+            <Button variant="secondary" size="lg" onClick={handleAnalytics}>
+              Analytics
             </Button>
             <Button variant="danger" size="lg" onClick={() => { handleLogout(); navigate('/login'); }}>
               Sair
@@ -167,8 +185,8 @@ function TherapistPage() {
           <Button variant="primary" size="lg" onClick={() => setShowPatientModal(true)}>
             + Novo Paciente
           </Button>
-          <Button variant="secondary" size="lg">
-            📄 Novo Prontuário
+          <Button variant="secondary" size="lg" onClick={handleNewProntuario}>
+            Novo Prontuario
           </Button>
         </div>
 
@@ -178,10 +196,10 @@ function TherapistPage() {
               <thead style={{ borderBottom: '2px solid #e5e7eb' }}>
                 <tr>
                   <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Nome</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Última Sessão</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Próxima Sessão</th>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Ultima Sessao</th>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Proxima Sessao</th>
                   <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Status</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Ações</th>
+                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Acoes</th>
                 </tr>
               </thead>
               <tbody>
@@ -197,29 +215,29 @@ function TherapistPage() {
                     </td>
                     <td style={{ padding: '12px 16px' }}>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          title="Prontuário"
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Prontuario"
                           onClick={() => handleViewProntuario(patient.id)}
                         >
-                          📋
+                          Prontuario
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          title="Análise Preditiva"
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Analise Preditiva"
                           onClick={() => handleViewAnalysis(patient.id)}
                         >
-                          🧠
+                          Analise
                         </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           title="Teleterapia"
                           onClick={() => handleStartTeletherapy(patient.id)}
                         >
-                          📹
+                          Teleterapia
                         </Button>
                       </div>
                     </td>

@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+﻿import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from './Sidebar';
@@ -25,12 +25,15 @@ function ProtectedRoute({ children }) {
     return <Navigate to="/rejeitado" replace />;
   }
 
-  // Layout com sidebar
+  // Mostrar Sidebar apenas para Admin e Master
+  const showSidebar = user.role === 'admin' || user.role === 'master';
+
+  // Layout com sidebar (apenas para admin/master)
   return (
     <div style={{ display: 'flex' }}>
-      <Sidebar user={user} />
+      {showSidebar && <Sidebar user={user} />}
 
-      <div style={{ marginLeft: '250px', width: '100%', padding: '20px' }}>
+      <div style={{ marginLeft: showSidebar ? '250px' : '0', width: '100%', padding: '20px' }}>
         {children}
       </div>
     </div>

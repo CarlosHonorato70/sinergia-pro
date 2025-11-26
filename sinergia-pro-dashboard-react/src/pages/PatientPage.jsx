@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+﻿import React, { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Button } from '../components/Button';
@@ -9,14 +9,21 @@ function PatientPage() {
   const { user, handleLogout } = useContext(AuthContext);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // VERIFICA SE ESTA APROVADO
+    if (user && !user.is_approved) {
+      navigate('/dashboard');
+      return;
+    }
+  }, [user, navigate]);
+
   const sessions = [
-    { id: 1, date: '2025-11-21', therapist: 'Dr. Carlos Silva', status: 'concluída', notes: 'Ótima sessão' },
+    { id: 1, date: '2025-11-21', therapist: 'Dr. Carlos Silva', status: 'concluida', notes: 'Otima sessao' },
     { id: 2, date: '2025-11-28', therapist: 'Dr. Carlos Silva', status: 'agendada', notes: '' },
   ];
 
   const handleStartSession = () => {
-    alert('📞 Iniciando videochamada com Dr. Carlos Silva...\n\nEm produção, isso integraria com Zoom, Google Meet ou similar.');
-    // Em um cenário real, isso abriria uma integração com Zoom/Google Meet
+    alert('Iniciando videochamada com Dr. Carlos Silva...\n\nEm producao, isso integraria com Zoom, Google Meet ou similar.');
   };
 
   return (
@@ -26,11 +33,11 @@ function PatientPage() {
         <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '24px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <Button variant="outline" onClick={() => navigate('/dashboard')}>
-              ← Voltar
+              Voltar
             </Button>
             <div>
               <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#0066CC' }}>Meu Acompanhamento</h1>
-              <p style={{ color: '#666' }}>Área do Paciente</p>
+              <p style={{ color: '#666' }}>Area do Paciente</p>
             </div>
           </div>
           <Button variant="danger" size="lg" onClick={() => { handleLogout(); navigate('/login'); }}>
@@ -49,7 +56,7 @@ function PatientPage() {
             onClick={() => navigate('/diary')}
             style={{ padding: '20px', height: 'auto', textAlign: 'center', whiteSpace: 'normal' }}
           >
-            📔<br />Diário Terapêutico
+            Diario Terapeutico
           </Button>
           <Button
             variant="secondary"
@@ -57,7 +64,7 @@ function PatientPage() {
             onClick={() => navigate('/appointments')}
             style={{ padding: '20px', height: 'auto', textAlign: 'center', whiteSpace: 'normal' }}
           >
-            📅<br />Agendamento
+            Agendamento
           </Button>
           <Button
             variant="outline"
@@ -65,7 +72,7 @@ function PatientPage() {
             onClick={() => navigate('/chat')}
             style={{ padding: '20px', height: 'auto', textAlign: 'center', whiteSpace: 'normal' }}
           >
-            💬<br />Chat
+            Chat
           </Button>
           <Button
             variant="outline"
@@ -73,30 +80,30 @@ function PatientPage() {
             onClick={() => navigate('/assessments')}
             style={{ padding: '20px', height: 'auto', textAlign: 'center', whiteSpace: 'normal' }}
           >
-            📊<br />Questionários
+            Questionarios
           </Button>
         </div>
 
         {/* Info Cards */}
         <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          <Card title="Próxima Sessão">
+          <Card title="Proxima Sessao">
             <div style={{ fontSize: '14px' }}>
               <p style={{ marginBottom: '8px' }}>
                 <strong>Data:</strong> 28 de Novembro, 2025
               </p>
               <p style={{ marginBottom: '8px' }}>
-                <strong>Horário:</strong> 10:00 AM
+                <strong>Horario:</strong> 10:00 AM
               </p>
               <p style={{ marginBottom: '12px' }}>
                 <strong>Terapeuta:</strong> Dr. Carlos Silva
               </p>
-              <Button 
-                variant="secondary" 
-                size="sm" 
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={handleStartSession}
                 style={{ width: '100%' }}
               >
-                📞 Iniciar Sessão
+                Iniciar Sessao
               </Button>
             </div>
           </Card>
@@ -104,7 +111,7 @@ function PatientPage() {
           <Card title="Seu Progresso">
             <div style={{ fontSize: '14px' }}>
               <p style={{ marginBottom: '8px' }}>
-                <strong>Sessões Concluídas:</strong> 5
+                <strong>Sessoes Concluidas:</strong> 5
               </p>
               <p style={{ marginBottom: '8px' }}>
                 <strong>Taxa de Assiduidade:</strong> 100%
@@ -117,7 +124,7 @@ function PatientPage() {
         </div>
 
         {/* Sessions */}
-        <Card title="Histórico de Sessões">
+        <Card title="Historico de Sessoes">
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead style={{ borderBottom: '2px solid #e5e7eb' }}>
@@ -134,7 +141,7 @@ function PatientPage() {
                     <td style={{ padding: '12px 16px' }}>{new Date(session.date).toLocaleDateString('pt-BR')}</td>
                     <td style={{ padding: '12px 16px' }}>{session.therapist}</td>
                     <td style={{ padding: '12px 16px' }}>
-                      <Badge variant={session.status === 'concluída' ? 'primary' : 'warning'}>
+                      <Badge variant={session.status === 'concluida' ? 'primary' : 'warning'}>
                         {session.status}
                       </Badge>
                     </td>

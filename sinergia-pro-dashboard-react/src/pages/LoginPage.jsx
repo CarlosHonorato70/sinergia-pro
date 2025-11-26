@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
@@ -9,7 +9,8 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+
+  const { handleLogin } = useContext(AuthContext);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,9 +28,14 @@ function LoginPage() {
         password,
       });
 
-      login(response.data.user, response.data.access_token);
+      console.log("LOGIN RAW RESPONSE:", response.data);
+
+      handleLogin(response.data.user, response.data.access_token);
+
       navigate('/dashboard');
+
     } catch (err) {
+      console.log("LOGIN ERROR:", err);
       setError(err.response?.data?.detail || 'Erro ao fazer login.');
     } finally {
       setLoading(false);

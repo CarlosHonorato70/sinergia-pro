@@ -1,132 +1,194 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button } from '../components/Button';
-import { Input } from '../components/Input';
-import { apiCall } from '../config/api';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
 
 function RegisterPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState('patient');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    // Validações básicas
+    if (!name || !email || !password || !confirmPassword) {
+      setError("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("A senha deve ter no mínimo 6 caracteres.");
+      return;
+    }
+
     setLoading(true);
-    setError('');
-    setSuccess('');
-
     try {
-      await apiCall('/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, name, role }),
-      });
+      const response = await axios.post(
+        "http://localhost:8000/register",
+        {
+          name,
+          email,
+          password,
+        }
+      );
 
-      setSuccess('✅ Cadastro realizado com sucesso! Redirecionando...');
-      
+      setSuccess("Cadastro realizado com sucesso! Você pode fazer login agora.");
       setTimeout(() => {
-        navigate('/login');
+        navigate("/login");
       }, 2000);
     } catch (err) {
-      setError('❌ Erro ao cadastrar. Email pode já estar registrado.');
+      const errorData = err.response?.data;
+
+      if (Array.isArray(errorData)) {
+        // Se for array de validação do FastAPI
+        const messages = errorData.map(e => e.msg || e.detail).join(", ");
+        setError(messages || "Erro ao cadastrar. Tente novamente.");
+      } else if (typeof errorData === "object" && errorData?.detail) {
+        // Se for objeto com detail
+        setError(errorData.detail);
+      } else {
+        setError("Erro ao cadastrar. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-      <div style={{ backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', padding: '40px', maxWidth: '400px', width: '100%' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#0066CC', textAlign: 'center', marginBottom: '8px' }}>
-          Sinergia Pro
-        </h1>
-        <p style={{ color: '#666', textAlign: 'center', marginBottom: '32px' }}>
-          Crie sua conta
-        </p>
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <h2 style={styles.headerText}>Criar uma conta</h2>
 
-        {error && (
-          <div style={{ backgroundColor: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '14px' }}>
-            {error}
-          </div>
-        )}
+        {error && <p style={styles.errorMessage}>{error}</p>}
+        {success && <p style={styles.successMessage}>{success}</p>}
 
-        {success && (
-          <div style={{ backgroundColor: '#dcfce7', color: '#16a34a', padding: '12px', borderRadius: '6px', marginBottom: '16px', fontSize: '14px' }}>
-            {success}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <Input
-            label="Nome Completo"
+        <form onSubmit={handleSubmit} style={styles.form}>
+          <input
             type="text"
+            placeholder="Nome completo"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Seu nome"
-            required
+            style={styles.input}
+            disabled={loading}
           />
-
-          <Input
-            label="Email"
+          <input
             type="email"
+            placeholder="E-mail"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="seu@email.com"
-            required
+            style={styles.input}
+            disabled={loading}
           />
-
-          <Input
-            label="Senha"
+          <input
             type="password"
+            placeholder="Senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mínimo 6 caracteres"
-            required
+            style={styles.input}
+            disabled={loading}
+          />
+          <input
+            type="password"
+            placeholder="Confirmar senha"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            style={styles.input}
+            disabled={loading}
           />
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', marginBottom: '8px', color: '#1f2937' }}>
-              Tipo de Conta
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #d1d5db',
-                borderRadius: '6px',
-                fontFamily: 'inherit',
-                fontSize: '14px',
-                boxSizing: 'border-box',
-              }}
-            >
-              <option value="patient">👤 Paciente</option>
-              <option value="therapist">👨‍⚕️ Terapeuta</option>
-            </select>
-          </div>
-
-          <Button
-            variant="primary"
-            size="lg"
-            type="submit"
-            disabled={loading}
-            style={{ width: '100%', marginBottom: '12px' }}
-          >
-            {loading ? '⏳ Cadastrando...' : '✓ Cadastrar'}
-          </Button>
+          <button type="submit" style={styles.registerButton} disabled={loading}>
+            {loading ? "Cadastrando..." : "Cadastrar"}
+          </button>
         </form>
 
-        <p style={{ fontSize: '14px', color: '#666', textAlign: 'center', marginTop: '16px' }}>
-          Já tem conta? <Link to="/login" style={{ color: '#0066CC', textDecoration: 'none', fontWeight: 'bold' }}>Entrar</Link>
+        <p style={styles.loginText}>
+          Já tem uma conta?{" "}
+          <Link to="/login" style={styles.loginLink}>
+            Faça login
+          </Link>
         </p>
       </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: "100vh",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    background: "linear-gradient(135deg, #D5C0EA, #8A2BE2, #FFDAB9)",
+    padding: "20px",
+    boxSizing: "border-box",
+  },
+  card: {
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    padding: "40px",
+    borderRadius: "20px",
+    maxWidth: "450px",
+    width: "100%",
+    textAlign: "center",
+  },
+  headerText: {
+    fontSize: "24px",
+    fontWeight: "bold",
+    marginBottom: "20px",
+    color: "#333",
+  },
+  errorMessage: {
+    color: "#f44336",
+    marginBottom: "15px",
+    fontSize: "14px",
+  },
+  successMessage: {
+    color: "#4CAF50",
+    marginBottom: "15px",
+    fontSize: "14px",
+  },
+  form: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px",
+    marginBottom: "20px",
+  },
+  input: {
+    padding: "12px 15px",
+    borderRadius: "10px",
+    border: "1px solid #ddd",
+    fontSize: "16px",
+  },
+  registerButton: {
+    padding: "15px",
+    background: "#8A2BE2",
+    border: "none",
+    borderRadius: "10px",
+    color: "white",
+    fontSize: "18px",
+    cursor: "pointer",
+    marginTop: "10px",
+  },
+  loginText: {
+    marginTop: "20px",
+    fontSize: "14px",
+  },
+  loginLink: {
+    color: "#8A2BE2",
+    fontWeight: "bold",
+    textDecoration: "none",
+  },
+};
 
 export default RegisterPage;

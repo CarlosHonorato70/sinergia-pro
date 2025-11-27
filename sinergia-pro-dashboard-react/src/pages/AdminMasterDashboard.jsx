@@ -1,6 +1,5 @@
-﻿import React, { useEffect, useState, useContext } from 'react';
-import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+﻿import React, { useEffect, useState } from 'react';
+import { graphqlClient, QUERY_DASHBOARD_STATS } from '../graphqlClient';
 
 function AdminMasterDashboard() {
   const [stats, setStats] = useState({
@@ -9,20 +8,8 @@ function AdminMasterDashboard() {
     registeredPatients: 0,
     pendingApproval: 0,
   });
-  const [recentStats, setRecentStats] = useState({
-    newUsers: 0,
-    sessionsCompleted: 0,
-    satisfactionRate: 0,
-  });
-  const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const token = localStorage.getItem('token');
-  const API_BASE = 'http://localhost:8000/api/admin';
-
-  const axiosConfig = {
-    headers: { Authorization: `Bearer ${token}` },
-  };
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -30,45 +17,51 @@ function AdminMasterDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      // Buscar estatísticas gerais
-      const usersRes = await axios.get(`${API_BASE}/stats/users`, axiosConfig);
+      setLoading(true);
+      const data = await graphqlClient.request(QUERY_DASHBOARD_STATS);
+
+      // Calcular estatísticas
+      const users = data.users || [];
+      const patients = data.approvedPatients || [];
+      const therapists = data.approvedTherapists || [];
+
+      const totalUsers = users.length;
+      const activeTherapists = therapists.length;
+      const registeredPatients = patients.length;
+      const pendingApproval = users.filter(u => !u.isApproved).length;
+
       setStats({
-        totalUsers: usersRes.data.total || 0,
-        activeTherapists: usersRes.data.therapists || 0,
-        registeredPatients: usersRes.data.patients || 0,
-        pendingApproval: usersRes.data.pending || 0,
+        totalUsers,
+        activeTherapists,
+        registeredPatients,
+        pendingApproval,
       });
 
-      // Buscar estatísticas recentes
-      const recentRes = await axios.get(`${API_BASE}/stats/recent`, axiosConfig);
-      setRecentStats({
-        newUsers: recentRes.data.new_users || 0,
-        sessionsCompleted: recentRes.data.sessions || 0,
-        satisfactionRate: recentRes.data.satisfaction || 0,
-      });
-
-      // Buscar alertas
-      const alertsRes = await axios.get(`${API_BASE}/alerts`, axiosConfig);
-      setAlerts(alertsRes.data || []);
-
+      setError(null);
     } catch (err) {
       console.error('Erro ao carregar dados do dashboard:', err);
-      // Fallback com dados padrão
-      setStats({
-        totalUsers: 0,
-        activeTherapists: 0,
-        registeredPatients: 0,
-        pendingApproval: 0,
-      });
+      setError('Erro ao carregar dados do dashboard');
     } finally {
       setLoading(false);
     }
   };
 
+  // Calcular alertas
+  const alerts = [];
+  if (stats.pendingApproval > 0) {
+    alerts.push(`${stats.pendingApproval} usuário(s) aguardando aprovação`);
+  }
+  if (stats.totalUsers === 0) {
+    alerts.push('Nenhum usuário no sistema');
+  }
+  if (stats.activeTherapists < 3 && stats.activeTherapists > 0) {
+    alerts.push('Poucos terapeutas ativos no sistema');
+  }
+
   if (loading) {
     return (
       <div style={{ padding: '32px 16px', textAlign: 'center' }}>
-        <p>Carregando dashboard...</p>
+        <p>⏳ Carregando dashboard...</p>
       </div>
     );
   }
@@ -76,7 +69,35 @@ function AdminMasterDashboard() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '32px 16px' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        <h1 style={{ marginBottom: '30px', color: '#333' }}>📊 Dashboard do Sistema</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+          <h1 style={{ margin: 0, color: '#333' }}>📊 Dashboard do Sistema</h1>
+          <button
+            onClick={loadDashboardData}
+            style={{
+              padding: '10px 20px',
+              background: '#007bff',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            🔄 Atualizar
+          </button>
+        </div>
+
+        {error && (
+          <div style={{
+            padding: '15px',
+            background: '#ffcccc',
+            borderRadius: '5px',
+            marginBottom: '20px',
+            color: 'red',
+          }}>
+            {error}
+          </div>
+        )}
 
         {/* Cards de Estatísticas */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
@@ -105,32 +126,19 @@ function AdminMasterDashboard() {
           </div>
         </div>
 
-        {/* Seção de Estatísticas Recentes e Alertas */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-          {/* Estatísticas Recentes */}
-          <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>Estatísticas Recentes</h3>
-            <div style={{ backgroundColor: '#f0f4f8', padding: '16px', borderRadius: '4px' }}>
-              <p style={{ margin: '8px 0', color: '#333' }}>✓ Novos usuários (últimos 30 dias): {recentStats.newUsers}</p>
-              <p style={{ margin: '8px 0', color: '#333' }}>✓ Sessões realizadas: {recentStats.sessionsCompleted}</p>
-              <p style={{ margin: '8px 0', color: '#333' }}>✓ Taxa de satisfação: {recentStats.satisfactionRate}%</p>
-            </div>
-          </div>
-
-          {/* Alertas do Sistema */}
-          <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>Alertas do Sistema</h3>
-            <div style={{ backgroundColor: '#fef2f2', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #ef4444' }}>
-              {alerts.length > 0 ? (
-                alerts.map((alert, idx) => (
-                  <p key={idx} style={{ margin: '8px 0', fontWeight: 'bold', color: '#d32f2f' }}>
-                    ⚠️ {alert}
-                  </p>
-                ))
-              ) : (
-                <p style={{ margin: '8px 0', color: '#666' }}>✓ Nenhum alerta no momento</p>
-              )}
-            </div>
+        {/* Alertas do Sistema */}
+        <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+          <h3 style={{ margin: '0 0 15px 0', color: '#333' }}>Alertas do Sistema</h3>
+          <div style={{ backgroundColor: '#fef2f2', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #ef4444' }}>
+            {alerts.length > 0 ? (
+              alerts.map((alert, idx) => (
+                <p key={idx} style={{ margin: '8px 0', fontWeight: 'bold', color: '#d32f2f' }}>
+                  ⚠️ {alert}
+                </p>
+              ))
+            ) : (
+              <p style={{ margin: '8px 0', color: '#666' }}>✓ Nenhum alerta no momento</p>
+            )}
           </div>
         </div>
       </div>

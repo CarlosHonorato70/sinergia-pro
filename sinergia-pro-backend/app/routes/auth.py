@@ -17,13 +17,27 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
     if exists:
         raise HTTPException(status_code=400, detail="Email já cadastrado")
 
-    user = User(
-        email=data.email,
-        password=hash_password(data.password),
-        name=data.name,
-        role="patient",  # Novo usuário sempre começa como patient
-        is_approved=False  # Pendente de aprovação
-    )
+    # Verificar se é o primeiro cadastro
+    user_count = db.query(User).count()
+    
+    if user_count == 0:
+        # Primeiro cadastro = Admin Master (sem aprovação necessária)
+        user = User(
+            email=data.email,
+            password=hash_password(data.password),
+            name=data.name,
+            role="admin_master",
+            is_approved=True
+        )
+    else:
+        # Demais cadastros = Patient (precisa aprovação)
+        user = User(
+            email=data.email,
+            password=hash_password(data.password),
+            name=data.name,
+            role="patient",
+            is_approved=False
+        )
 
     db.add(user)
     db.commit()
@@ -43,7 +57,26 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     if not user or not verify_password(data.password, user.password):
         raise HTTPException(status_code=401, detail="Email ou senha inválidos")
 
-    # BLOQUEIO DE USUÁRIOS PENDENTES
+    # Admin Master não precisa de aprovação
+    if user.role == "admin_master":
+        expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        token = create_access_token(
+            {"sub": str(user.id), "role": user.role},
+            expires
+        )
+        return {
+            "access_token": token,
+            "role": user.role,
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "name": user.name,
+                "role": user.role,
+                "is_approved": user.is_approved
+            }
+        }
+
+    # Outros roles (admin, therapist, patient) precisam de aprovação
     if user.is_approved is False:
         raise HTTPException(status_code=403, detail="Seu cadastro ainda não foi aprovado.")
 
@@ -85,5 +118,3 @@ def get_current_user_info(current_user: dict = Depends(get_current_user), db: Se
         "role": user.role,
         "is_approved": user.is_approved
     }
-
-# Router exportado automaticamente como 'router'

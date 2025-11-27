@@ -64,13 +64,13 @@ def get_current_user(authorization: str = Header(None, alias="Authorization")):
 
 
 def verify_master(current_user):
-    """Verifica se o usuário é master"""
+    """Verifica se o usuário é admin_master"""
     if not current_user:
         raise HTTPException(status_code=401, detail="Usuário não autenticado")
     
     role = current_user.get("role") if isinstance(current_user, dict) else getattr(current_user, 'role', None)
     
-    if role != "master":
-        raise HTTPException(status_code=403, detail="Acesso negado. Apenas Master pode executar esta ação.")
+    if role != "admin_master":
+        raise HTTPException(status_code=403, detail="Acesso negado. Apenas usuários master podem realizar esta ação.")
     
     return True

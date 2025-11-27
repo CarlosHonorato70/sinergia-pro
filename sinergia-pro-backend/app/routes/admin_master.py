@@ -17,8 +17,8 @@ class ApproveUserRequest(BaseModel):
 
 # 2. Função verify_master() que valida se o usuário é master
 def verify_master(current_user: dict):
-    """Valida se o usuário tem role 'master'"""
-    if not current_user or current_user.get("role") != "master":
+    """Valida se o usuário tem role 'admin_master'"""
+    if not current_user or current_user.get("role") != "admin_master":
         raise HTTPException(status_code=403, detail="Acesso negado. Apenas usuários master podem realizar esta ação.")
 
 # 3. Endpoints: GET /all-users - listar todos os usuários

@@ -13,7 +13,7 @@ function AdminMasterLayout({ children }) {
   };
 
   const menuItems = [
-    { name: 'Dashboard', path: '/admin/master', icon: '📊' },
+    { name: 'Dashboard', path: '/admin/master/dashboard', icon: '📊' },
     { name: 'Usuários', path: '/admin/master/usuarios', icon: '👥' },
     { name: 'Terapeutas', path: '/admin/master/terapeutas', icon: '👨‍⚕️' },
     { name: 'Pacientes', path: '/admin/master/pacientes', icon: '🧑‍🤝‍🧑' },
@@ -25,7 +25,6 @@ function AdminMasterLayout({ children }) {
 
   return (
     <div style={layoutStyles.container}>
-      {/* Sidebar */}
       <aside style={layoutStyles.sidebar}>
         <div style={layoutStyles.sidebarHeader}>
           <h2 style={layoutStyles.sidebarTitle}>Sinergia Pro</h2>
@@ -50,9 +49,7 @@ function AdminMasterLayout({ children }) {
         </nav>
       </aside>
 
-      {/* Main Content Area */}
       <div style={layoutStyles.mainContentArea}>
-        {/* Header */}
         <header style={layoutStyles.header}>
           <h1 style={layoutStyles.headerTitle}>Painel do Administrador Master</h1>
           <button onClick={handleLogoutClick} style={layoutStyles.logoutButton}>
@@ -60,7 +57,6 @@ function AdminMasterLayout({ children }) {
           </button>
         </header>
 
-        {/* Page Content */}
         <main style={layoutStyles.pageContent}>
           {children}
         </main>
@@ -73,17 +69,17 @@ const layoutStyles = {
   container: {
     display: 'flex',
     minHeight: '100vh',
-    backgroundColor: '#f8f9fa', // Light background for the whole app
+    backgroundColor: '#f8f9fa',
   },
   sidebar: {
     width: '280px',
-    backgroundColor: '#1a1a1a', // Dark background
+    backgroundColor: '#1a1a1a',
     color: '#ffffff',
     padding: '20px 0',
     boxShadow: '2px 0 5px rgba(0,0,0,0.2)',
     display: 'flex',
     flexDirection: 'column',
-    flexShrink: 0, // Prevent sidebar from shrinking
+    flexShrink: 0,
   },
   sidebarHeader: {
     padding: '0 20px 30px 20px',
@@ -94,7 +90,7 @@ const layoutStyles = {
     fontSize: '24px',
     fontWeight: 'bold',
     margin: 0,
-    color: '#00ccff', // Highlight color for title
+    color: '#00ccff',
   },
   menuList: {
     listStyle: 'none',
@@ -114,11 +110,11 @@ const layoutStyles = {
     transition: 'background-color 0.3s ease, color 0.3s ease',
   },
   menuLinkActive: {
-    backgroundColor: '#0056b3', // Darker blue for active
+    backgroundColor: '#0056b3',
     color: '#ffffff',
     fontWeight: 'bold',
-    borderLeft: '4px solid #00ccff', // Highlight bar
-    paddingLeft: '16px', // Adjust padding for border
+    borderLeft: '4px solid #00ccff',
+    paddingLeft: '16px',
   },
   menuIcon: {
     marginRight: '10px',
@@ -137,7 +133,7 @@ const layoutStyles = {
     alignItems: 'center',
     padding: '0 24px',
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-    flexShrink: 0, // Prevent header from shrinking
+    flexShrink: 0,
   },
   headerTitle: {
     fontSize: '22px',
@@ -147,7 +143,7 @@ const layoutStyles = {
   },
   logoutButton: {
     padding: '10px 20px',
-    backgroundColor: '#dc3545', // Red for logout
+    backgroundColor: '#dc3545',
     color: 'white',
     border: 'none',
     borderRadius: '5px',
@@ -159,22 +155,8 @@ const layoutStyles = {
   pageContent: {
     flex: 1,
     padding: '24px',
-    overflowY: 'auto', // Enable scrolling for content if it overflows
+    overflowY: 'auto',
   },
 };
-
-// Add hover effects dynamically
-Object.assign(layoutStyles.menuLink, {
-  ':hover': {
-    backgroundColor: '#333333', // Lighter dark for hover
-    color: '#ffffff',
-  },
-});
-
-Object.assign(layoutStyles.logoutButton, {
-  ':hover': {
-    backgroundColor: '#c82333', // Darker red for hover
-  },
-});
 
 export default AdminMasterLayout;

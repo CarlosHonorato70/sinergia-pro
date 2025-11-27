@@ -44,7 +44,13 @@ function RegisterPage() {
         }
       );
 
-      setSuccess("Cadastro realizado com sucesso! Você pode fazer login agora.");
+      // Se for o primeiro usuário, ele será admin_master
+      if (response.data.role === "admin_master") {
+        setSuccess("Parabéns! Você é o Administrador Master! Faça login agora.");
+      } else {
+        setSuccess("Cadastro realizado com sucesso! Aguarde aprovação do Administrador Master.");
+      }
+
       setTimeout(() => {
         navigate("/login");
       }, 2000);
@@ -52,11 +58,9 @@ function RegisterPage() {
       const errorData = err.response?.data;
 
       if (Array.isArray(errorData)) {
-        // Se for array de validação do FastAPI
         const messages = errorData.map(e => e.msg || e.detail).join(", ");
         setError(messages || "Erro ao cadastrar. Tente novamente.");
       } else if (typeof errorData === "object" && errorData?.detail) {
-        // Se for objeto com detail
         setError(errorData.detail);
       } else {
         setError("Erro ao cadastrar. Tente novamente.");

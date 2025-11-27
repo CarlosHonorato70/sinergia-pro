@@ -1,49 +1,58 @@
-﻿import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/Button';
-import { Card } from '../components/Card';
-import { Badge } from '../components/Badge';
+﻿import React, { useEffect, useState } from 'react';
+import { graphqlClient, QUERY_THERAPISTS } from '../graphqlClient';
 
-function AdminMasterTerapeutas() {
-  const navigate = useNavigate();
-  const [terapeutas, setTerapeutas] = useState([
-    { id: 1, name: 'Dr. João Silva', specialization: 'Psicologia Clínica', patients: 5, rating: 4.8 },
-    { id: 2, name: 'Dra. Maria Costa', specialization: 'Terapia Comportamental', patients: 3, rating: 4.9 },
-    { id: 3, name: 'Dr. Carlos Santos', specialization: 'Psicanálise', patients: 7, rating: 4.7 },
-  ]);
+export default function AdminMasterTerapeutas() {
+  const [therapists, setTherapists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchTherapists = async () => {
+      try {
+        setLoading(true);
+        const data = await graphqlClient.request(QUERY_THERAPISTS);
+        setTherapists(data.approvedTherapists);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTherapists();
+  }, []);
+
+  if (loading) return <div>Carregando...</div>;
+  if (error) return <div>Erro: {error}</div>;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '32px 16px' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        <Button variant="outline" onClick={() => navigate('/admin/master')}>
-          ← Voltar
-        </Button>
-
-        <h1 style={{ marginTop: '20px', marginBottom: '30px' }}>🏥 Gerenciar Terapeutas</h1>
-
-        <Button variant="primary" size="lg" style={{ marginBottom: '24px' }}>
-          + Adicionar Terapeuta
-        </Button>
-
-        <Card title={`Terapeutas Registrados (${terapeutas.length})`}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-            {terapeutas.map((terapeuta) => (
-              <div key={terapeuta.id} style={{ backgroundColor: 'white', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-                <h3>{terapeuta.name}</h3>
-                <p style={{ color: '#666' }}>{terapeuta.specialization}</p>
-                <p>👥 Pacientes: {terapeuta.patients}</p>
-                <p>⭐ Avaliação: {terapeuta.rating}/5.0</p>
-                <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                  <Button variant="outline" size="sm">✏️ Editar</Button>
-                  <Button variant="danger" size="sm">🗑️ Remover</Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
+    <div style={{ padding: '20px' }}>
+      <h1>Terapeutas Aprovados</h1>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#f0f0f0' }}>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>ID</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Nome</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Email</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Especialidade</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {therapists.map((therapist) => (
+            <tr key={therapist.id}>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{therapist.id}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{therapist.name}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{therapist.email}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{therapist.specialty || 'N/A'}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                {therapist.isApproved ? '✅ Aprovado' : '❌ Pendente'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>Total: {therapists.length} terapeutas aprovados</p>
     </div>
   );
 }
-
-export default AdminMasterTerapeutas;

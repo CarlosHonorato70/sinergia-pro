@@ -1,76 +1,58 @@
-﻿import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/Button';
-import { Card } from '../components/Card';
-import { Badge } from '../components/Badge';
+﻿import React, { useEffect, useState } from 'react';
+import { graphqlClient, QUERY_USERS } from '../graphqlClient';
 
-function AdminMasterUsuarios() {
-  const navigate = useNavigate();
-  const [usuarios, setUsuarios] = useState([
-    { id: 1, name: 'Carlos Silva', email: 'carlos@example.com', role: 'master', status: 'ativo' },
-    { id: 2, name: 'Ana Costa', email: 'ana@example.com', role: 'admin', status: 'ativo' },
-    { id: 3, name: 'João Santos', email: 'joao@example.com', role: 'therapist', status: 'inativo' },
-    { id: 4, name: 'Maria Oliveira', email: 'maria@example.com', role: 'patient', status: 'ativo' },
-  ]);
+export default function AdminMasterUsuarios() {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const handleDelete = (id) => {
-    if (window.confirm('Tem certeza que deseja deletar este usuário?')) {
-      setUsuarios(usuarios.filter(u => u.id !== id));
-      alert('Usuário deletado com sucesso!');
-    }
-  };
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        const data = await graphqlClient.request(QUERY_USERS);
+        setUsers(data.users);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  if (loading) return <div>Carregando...</div>;
+  if (error) return <div>Erro: {error}</div>;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '32px 16px' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        <Button variant="outline" onClick={() => navigate('/admin/master')}>
-          ← Voltar
-        </Button>
-
-        <h1 style={{ marginTop: '20px', marginBottom: '30px' }}>👥 Gerenciar Usuários</h1>
-
-        <Button variant="primary" size="lg" style={{ marginBottom: '24px' }}>
-          + Adicionar Usuário
-        </Button>
-
-        <Card title={`Todos os Usuários (${usuarios.length})`}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ borderBottom: '2px solid #e5e7eb' }}>
-                <tr>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Nome</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Email</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Função</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Status</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usuarios.map((usuario) => (
-                  <tr key={usuario.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '12px 16px' }}>{usuario.name}</td>
-                    <td style={{ padding: '12px 16px' }}>{usuario.email}</td>
-                    <td style={{ padding: '12px 16px' }}>{usuario.role}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <Badge variant={usuario.status === 'ativo' ? 'primary' : 'warning'}>
-                        {usuario.status}
-                      </Badge>
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <Button variant="outline" size="sm">✏️ Editar</Button>
-                        <Button variant="danger" size="sm" onClick={() => handleDelete(usuario.id)}>🗑️ Deletar</Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
+    <div style={{ padding: '20px' }}>
+      <h1>Usuários do Sistema</h1>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#f0f0f0' }}>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>ID</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Nome</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Email</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Papel</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Aprovado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {users.map((user) => (
+            <tr key={user.id}>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{user.id}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{user.name}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{user.email}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{user.role}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                {user.isApproved ? 'Sim' : 'Não'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>Total: {users.length} usuários</p>
     </div>
   );
 }
-
-export default AdminMasterUsuarios;

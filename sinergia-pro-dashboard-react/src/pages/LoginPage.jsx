@@ -1,4 +1,4 @@
-﻿import React, { useState, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
@@ -30,9 +30,23 @@ function LoginPage() {
 
       console.log("LOGIN RAW RESPONSE:", response.data);
 
-      handleLogin(response.data.user, response.data.access_token);
+      const userData = response.data.user;
+      const token = response.data.access_token;
 
-      navigate('/dashboard');
+      handleLogin(userData, token);
+
+      // Redireciona baseado no role do usuário
+      if (userData.role === 'admin_master') {
+        navigate('/admin/master');
+      } else if (userData.role === 'admin') {
+        navigate('/admin');
+      } else if (userData.role === 'therapist') {
+        navigate('/therapist');
+      } else if (userData.role === 'patient') {
+        navigate('/patient');
+      } else {
+        navigate('/dashboard');
+      }
 
     } catch (err) {
       console.log("LOGIN ERROR:", err);
@@ -148,8 +162,8 @@ const styles = {
     marginTop: '10px',
     display: 'block',
     color: '#8A2BE2',
-    textDecoration: 'none',
     fontSize: '14px',
+    textDecoration: 'none',
   },
 };
 

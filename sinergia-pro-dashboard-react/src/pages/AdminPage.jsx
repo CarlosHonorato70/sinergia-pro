@@ -409,16 +409,16 @@ function AdminPage() {
   };
 
   // Função para logout
-  const handleLogout = () => {
+ const handleLogout = () => {
   if (window.confirm("Tem certeza que deseja sair?")) {
     logout();
-    navigate("/pages/LoginPage");
-   }
-  };
+    navigate("/login");  // ← Certifique que é "/login"
+  }
+};
 
-  const handleBack = () => {
-  navigate("/pages/LoginPage");
-  };
+const handleBack = () => {
+  navigate("/login");  // ← Certifique que é "/login"
+};
 
   // Cores para os gráficos (Recharts)
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];

@@ -1,64 +1,58 @@
-﻿import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/Button';
-import { Card } from '../components/Card';
-import { Badge } from '../components/Badge';
+﻿import React, { useEffect, useState } from 'react';
+import { graphqlClient, QUERY_PATIENTS } from '../graphqlClient';
 
-function AdminMasterPacientes() {
-  const navigate = useNavigate();
-  const [pacientes, setPatients] = useState([
-    { id: 1, name: 'Ana Silva', therapist: 'Dr. João Silva', status: 'ativo', startDate: '2025-01-15' },
-    { id: 2, name: 'Pedro Costa', therapist: 'Dra. Maria Costa', status: 'ativo', startDate: '2025-02-20' },
-    { id: 3, name: 'Julia Santos', therapist: 'Dr. Carlos Santos', status: 'concluído', startDate: '2024-11-10' },
-  ]);
+export default function AdminMasterPacientes() {
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        setLoading(true);
+        const data = await graphqlClient.request(QUERY_PATIENTS);
+        setPatients(data.approvedPatients);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
+  if (loading) return <div>Carregando...</div>;
+  if (error) return <div>Erro: {error}</div>;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6', padding: '32px 16px' }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-        <Button variant="outline" onClick={() => navigate('/admin/master')}>
-          ← Voltar
-        </Button>
-
-        <h1 style={{ marginTop: '20px', marginBottom: '30px' }}>👤 Gerenciar Pacientes</h1>
-
-        <Card title={`Total de Pacientes (${pacientes.length})`}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead style={{ borderBottom: '2px solid #e5e7eb' }}>
-                <tr>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Nome</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Terapeuta</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Status</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Data de Início</th>
-                  <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 'bold' }}>Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pacientes.map((paciente) => (
-                  <tr key={paciente.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '12px 16px' }}>{paciente.name}</td>
-                    <td style={{ padding: '12px 16px' }}>{paciente.therapist}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <Badge variant={paciente.status === 'ativo' ? 'primary' : 'warning'}>
-                        {paciente.status}
-                      </Badge>
-                    </td>
-                    <td style={{ padding: '12px 16px' }}>{paciente.startDate}</td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        <Button variant="outline" size="sm">👁️ Visualizar</Button>
-                        <Button variant="danger" size="sm">🗑️ Remover</Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Card>
-      </div>
+    <div style={{ padding: '20px' }}>
+      <h1>Pacientes Aprovados</h1>
+      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <thead>
+          <tr style={{ backgroundColor: '#f0f0f0' }}>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>ID</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Nome</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Email</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Papel</th>
+            <th style={{ border: '1px solid #ddd', padding: '10px' }}>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {patients.map((patient) => (
+            <tr key={patient.id}>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{patient.id}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{patient.name}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{patient.email}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>{patient.role}</td>
+              <td style={{ border: '1px solid #ddd', padding: '10px' }}>
+                {patient.isApproved ? '✅ Aprovado' : '❌ Pendente'}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p>Total: {patients.length} pacientes aprovados</p>
     </div>
   );
 }
-
-export default AdminMasterPacientes;

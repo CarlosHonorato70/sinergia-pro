@@ -1,52 +1,43 @@
 ﻿import argparse
-from app.database.connection import SessionLocal
+from app.database.connection import SessionLocal, Base, engine
 from app.models.user import User
 from app.utils.auth import hash_password
 
-def create_master(email: str, password: str, name: str):
-    db = SessionLocal()
+# Criar todas as tabelas
+Base.metadata.create_all(bind=engine)
 
-    # Verifica se já existe um master
-    existing_master = db.query(User).filter(User.role == "master").first()
-    if existing_master:
-        print("❌ Já existe um Administrador Master cadastrado.")
-        print(f"Master atual: {existing_master.email}")
-        db.close()
-        return
+parser = argparse.ArgumentParser()
+parser.add_argument('--email', required=True)
+parser.add_argument('--senha', required=True)
+parser.add_argument('--nome', required=True)
 
-    # Verifica se já existe o e-mail
-    existing_email = db.query(User).filter(User.email == email).first()
-    if existing_email:
-        print(f"❌ O e-mail {email} já está cadastrado.")
-        db.close()
-        return
+args = parser.parse_args()
 
-    # Cria o administrador master
-    master = User(
-        email=email,
-        password=hash_password(password),
-        name=name,
-        role="master",
-        is_verified=True,
-        is_approved=True
-    )
+db = SessionLocal()
 
-    db.add(master)
-    db.commit()
-    db.refresh(master)
+# Verificar se já existe
+existing = db.query(User).filter(User.email == args.email).first()
+if existing:
+    print(f'❌ Usuário {args.email} já existe!')
     db.close()
+    exit(1)
 
-    print("✅ Administrador Master criado com sucesso!")
-    print(f"Email: {master.email}")
-    print(f"Nome : {master.name}")
-    print("Role : master")
-    print("Acesso total liberado.")
+# Criar master
+master = User(
+    email=args.email,
+    password=hash_password(args.senha),
+    name=args.nome,
+    role='admin_master',
+    is_approved=True,
+    is_verified=True
+)
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Criar Administrador Master do sistema")
-    parser.add_argument("--email", required=True, help="E-mail do Administrador Master")
-    parser.add_argument("--senha", required=True, help="Senha do Administrador Master")
-    parser.add_argument("--nome", required=True, help="Nome do Administrador Master")
+db.add(master)
+db.commit()
+db.close()
 
-    args = parser.parse_args()
-    create_master(args.email, args.senha, args.nome)
+print('✅ Administrador Master criado com sucesso!')
+print(f'Email: {args.email}')
+print(f'Nome : {args.nome}')
+print(f'Role : admin_master')
+print('Acesso total liberado.')

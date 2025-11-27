@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useContext } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 
 function AdminMaster() {
-  const { user } = useContext(AuthContext);
+  const { user, handleLogout } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [pendingUsers, setPendingUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,13 +57,23 @@ function AdminMaster() {
     }
   };
 
+  const handleLogoutClick = () => {
+    handleLogout();
+    navigate("/login");
+  };
+
   useEffect(() => {
     loadPending();
   }, []);
 
   return (
     <div style={styles.container}>
-      <h1>Painel do Administrador Master</h1>
+      <div style={styles.header}>
+        <h1>Painel do Administrador Master</h1>
+        <button onClick={handleLogoutClick} style={styles.btnSair}>
+          Sair
+        </button>
+      </div>
 
       {loading ? (
         <p>Carregando usuários...</p>
@@ -123,6 +135,12 @@ const styles = {
   container: {
     padding: "40px",
   },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "30px",
+  },
   tableContainer: {
     marginTop: "20px",
     overflowX: "auto",
@@ -147,6 +165,16 @@ const styles = {
     border: "none",
     borderRadius: "6px",
     cursor: "pointer",
+  },
+  btnSair: {
+    padding: "10px 20px",
+    background: "#E53935",
+    color: "white",
+    border: "none",
+    borderRadius: "6px",
+    cursor: "pointer",
+    fontSize: "16px",
+    fontWeight: "bold",
   },
 };
 

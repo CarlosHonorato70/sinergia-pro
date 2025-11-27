@@ -22,7 +22,7 @@ function DashboardPage() {
 
       // Se APROVADO, redireciona conforme role
       if (parsedUser.is_approved) {
-        if (parsedUser.role === 'master') {
+        if (parsedUser.role === 'admin_master') {
           navigate('/admin/master');
         } else if (parsedUser.role === 'admin') {
           navigate('/admin');
@@ -124,7 +124,7 @@ function DashboardPage() {
     <div style={{ padding: 40 }}>
       <h1>Bem-vindo(a) ao Dashboard</h1>
 
-      {user.role === 'master' && (
+      {user.role === 'admin_master' && (
         <div style={{ marginTop: 20 }}>
           <Link
             to="/admin/master"

@@ -24,10 +24,16 @@ function TherapistPage() {
   ]);
 
   useEffect(() => {
-    // VERIFICA SE ESTA APROVADO
-    if (user && !user.is_approved) {
-      navigate('/dashboard');
-      return;
+    // VERIFICA ROLE E APROVACAO
+    if (user) {
+      if (user.role !== 'therapist') {
+        navigate('/login');
+        return;
+      }
+      if (!user.is_approved) {
+        navigate('/aguardando-aprovacao');
+        return;
+      }
     }
   }, [user, navigate]);
 

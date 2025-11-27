@@ -8,7 +8,6 @@ import AdminPage from "./pages/AdminPage";
 import TherapistPage from "./pages/TherapistPage";
 import PatientPage from "./pages/PatientPage";
 import DashboardPage from "./pages/DashboardPage";
-import AdminMaster from "./pages/AdminMaster";
 import AguardandoAprovacao from "./pages/AguardandoAprovacao";
 import Rejeitado from "./pages/Rejeitado";
 import NovoProntuarioPage from "./pages/NovoProntuarioPage";
@@ -18,6 +17,7 @@ import TeletherapyPage from "./pages/TeletherapyPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 
 // PÁGINAS MASTER
+import AdminMasterDashboard from "./pages/AdminMasterDashboard";
 import MasterUsuariosPage from "./pages/MasterUsuariosPage";
 import MasterTerapeutasPage from "./pages/MasterTerapeutasPage";
 import MasterPacientesPage from "./pages/MasterPacientesPage";
@@ -28,6 +28,9 @@ import MasterLogsPage from "./pages/MasterLogsPage";
 
 // PÁGINAS ADMIN
 import UsersPage from "./pages/UsersPage";
+
+// LAYOUTS
+import AdminMasterLayout from "./components/AdminMasterLayout";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, AuthContext } from "./context/AuthContext";
@@ -106,82 +109,23 @@ function AppRoutes() {
         }
       />
 
-      {/* MASTER - DASHBOARD */}
+      {/* MASTER - COM LAYOUT */}
       <Route
-        path="/admin/master"
+        path="/admin/master/*"
         element={
           <ProtectedRoute user={user}>
-            <AdminMaster />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* MASTER - USUÁRIOS */}
-      <Route
-        path="/admin/master/usuarios"
-        element={
-          <ProtectedRoute user={user}>
-            <MasterUsuariosPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* MASTER - TERAPEUTAS */}
-      <Route
-        path="/admin/master/terapeutas"
-        element={
-          <ProtectedRoute user={user}>
-            <MasterTerapeutasPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* MASTER - PACIENTES */}
-      <Route
-        path="/admin/master/pacientes"
-        element={
-          <ProtectedRoute user={user}>
-            <MasterPacientesPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* MASTER - APROVAÇÕES */}
-      <Route
-        path="/admin/master/aprovacoes"
-        element={
-          <ProtectedRoute user={user}>
-            <MasterAprovacoesPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* MASTER - RELATÓRIOS */}
-      <Route
-        path="/admin/master/relatorios"
-        element={
-          <ProtectedRoute user={user}>
-            <MasterRelatoriosPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* MASTER - CONFIGURAÇÕES */}
-      <Route
-        path="/admin/master/configuracoes"
-        element={
-          <ProtectedRoute user={user}>
-            <MasterConfiguracoesPage />
-          </ProtectedRoute>
-        }
-      />
-
-      {/* MASTER - LOGS */}
-      <Route
-        path="/admin/master/logs"
-        element={
-          <ProtectedRoute user={user}>
-            <MasterLogsPage />
+            <AdminMasterLayout>
+              <Routes>
+                <Route path="/" element={<AdminMasterDashboard />} />
+                <Route path="/usuarios" element={<MasterUsuariosPage />} />
+                <Route path="/terapeutas" element={<MasterTerapeutasPage />} />
+                <Route path="/pacientes" element={<MasterPacientesPage />} />
+                <Route path="/aprovacoes" element={<MasterAprovacoesPage />} />
+                <Route path="/relatorios" element={<MasterRelatoriosPage />} />
+                <Route path="/configuracoes" element={<MasterConfiguracoesPage />} />
+                <Route path="/logs" element={<MasterLogsPage />} />
+              </Routes>
+            </AdminMasterLayout>
           </ProtectedRoute>
         }
       />

@@ -1,10 +1,10 @@
-import React from "react";
+﻿import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminMasterLayout from "./components/AdminMasterLayout";
-import AdminMasterDashboard from "./pages/AdminMasterDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import AdminMasterUsuarios from "./pages/AdminMasterUsuarios";
 import AdminMasterTerapeutas from "./pages/AdminMasterTerapeutas";
 import AdminMasterPacientes from "./pages/AdminMasterPacientes";
@@ -23,81 +23,73 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
-          
+
           {/* Admin Master Routes */}
-          <Route 
-            path="/admin/master" 
-            element={
-              <AdminMasterLayout>
-                <AdminMasterDashboard />
-              </AdminMasterLayout>
-            } 
+          <Route
+            path="/admin/master"
+            element={<AdminDashboard />}
           />
-          <Route 
-            path="/admin/master/dashboard" 
-            element={
-              <AdminMasterLayout>
-                <AdminMasterDashboard />
-              </AdminMasterLayout>
-            } 
+          <Route
+            path="/admin/master/dashboard"
+            element={<AdminDashboard />}
           />
-          <Route 
-            path="/admin/master/usuarios" 
+          <Route
+            path="/admin/master/usuarios"
             element={
               <AdminMasterLayout>
                 <AdminMasterUsuarios />
               </AdminMasterLayout>
-            } 
+            }
           />
-          <Route 
-            path="/admin/master/terapeutas" 
+          <Route
+            path="/admin/master/terapeutas"
             element={
               <AdminMasterLayout>
                 <AdminMasterTerapeutas />
               </AdminMasterLayout>
-            } 
+            }
           />
-          <Route 
-            path="/admin/master/pacientes" 
+          <Route
+            path="/admin/master/pacientes"
             element={
               <AdminMasterLayout>
                 <AdminMasterPacientes />
               </AdminMasterLayout>
-            } 
+            }
           />
-          <Route 
-            path="/admin/master/aprovacoes" 
+          <Route
+            path="/admin/master/aprovacoes"
             element={
               <AdminMasterLayout>
                 <AdminMasterAprovacoes />
               </AdminMasterLayout>
-            } 
+            }
           />
-          <Route 
-            path="/admin/master/relatorios" 
+          <Route
+            path="/admin/master/relatorios"
             element={
               <AdminMasterLayout>
                 <AdminMasterRelatorios />
               </AdminMasterLayout>
-            } 
+            }
           />
-          <Route 
-            path="/admin/master/configuracoes" 
+          <Route
+            path="/admin/master/configuracoes"
             element={
               <AdminMasterLayout>
                 <AdminMasterConfiguracoes />
               </AdminMasterLayout>
-            } 
+            }
           />
-          <Route 
-            path="/admin/master/logs" 
+          <Route
+            path="/admin/master/logs"
             element={
               <AdminMasterLayout>
                 <AdminMasterLogs />
               </AdminMasterLayout>
-            } 
+            }
           />
-          
+
           {/* Other Routes */}
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/therapist" element={<TherapistPage />} />

@@ -1,99 +1,206 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+﻿import React, { useState, useContext, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import { AuthContext } from "../context/AuthContext";
+
+const API_BASE = "http://localhost:8000";
 
 function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const navigate = useNavigate();
-
   const { handleLogin } = useContext(AuthContext);
+
+  useEffect(() => {
+    const checkSystemStatus = async () => {
+      try {
+        const response = await axios.get(`${API_BASE}/api/auth/status`);
+        setSystemStatus(response.data.status);
+        setIsLoading(false);
+      } catch (err) {
+        console.error("Erro ao verificar status:", err);
+        setSystemStatus("ready");
+        setIsLoading(false);
+      }
+    };
+
+    checkSystemStatus();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
-    if (!email || !password) {
-      setError('Por favor, preencha todos os campos.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await axios.post('http://localhost:8000/login', {
-        email,
-        password,
-      });
-
-      console.log("LOGIN RAW RESPONSE:", response.data);
-
-      const userData = response.data.user;
-      const token = response.data.access_token;
-
-      handleLogin(userData, token);
-
-      // Redireciona baseado no role do usuário
-      if (userData.role === 'admin_master') {
-        navigate('/admin/master');
-      } else if (userData.role === 'admin') {
-        navigate('/admin');
-      } else if (userData.role === 'therapist') {
-        navigate('/therapist');
-      } else if (userData.role === 'patient') {
-        navigate('/patient');
-      } else {
-        navigate('/dashboard');
+    if (systemStatus === "empty") {
+      if (!email || !password || !fullName) {
+        setError("Por favor, preencha todos os campos.");
+        return;
       }
 
-    } catch (err) {
-      console.log("LOGIN ERROR:", err);
-      setError(err.response?.data?.detail || 'Erro ao fazer login.');
-    } finally {
-      setLoading(false);
+      if (password.length < 6) {
+        setError("Senha deve ter no mínimo 6 caracteres.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await axios.post(
+          `${API_BASE}/api/auth/register-first-admin`,
+          {
+            email,
+            password,
+            full_name: fullName,
+          }
+        );
+
+        console.log("REGISTRO RAW RESPONSE:", response.data);
+
+        const userData = response.data.user;
+        const token = response.data.access_token;
+
+        handleLogin(userData, token);
+        navigate("/admin/master");
+      } catch (err) {
+        console.log("REGISTRO ERROR:", err);
+        setError(
+          err.response?.data?.detail || "Erro ao registrar admin master."
+        );
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      if (!email || !password) {
+        setError("Por favor, preencha todos os campos.");
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await axios.post(`${API_BASE}/api/auth/login`, {
+          email,
+          password,
+        });
+
+        console.log("LOGIN RAW RESPONSE:", response.data);
+
+        const userData = response.data.user;
+        const token = response.data.access_token;
+
+        handleLogin(userData, token);
+
+        if (userData.role === "admin_master") {
+          navigate("/admin/master");
+        } else if (userData.role === "admin") {
+          navigate("/admin");
+        } else if (userData.role === "therapist") {
+          navigate("/therapist");
+        } else if (userData.role === "patient") {
+          navigate("/patient");
+        } else {
+          navigate("/dashboard");
+        }
+      } catch (err) {
+        console.log("LOGIN ERROR:", err);
+        setError(err.response?.data?.detail || "Erro ao fazer login.");
+      } finally {
+        setLoading(false);
+      }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <p>Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h2 style={styles.headerText}>Faça login na sua conta</h2>
+        {systemStatus === "empty" ? (
+          <>
+            <h2 style={styles.headerText}>🎯 Bem-vindo ao Sinergia Pro!</h2>
+            <p style={styles.subtitleText}>
+              Crie a conta do administrador master
+            </p>
 
-        {error && <p style={styles.errorMessage}>{error}</p>}
+            {error && <p style={styles.errorMessage}>{error}</p>}
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <input
-            type="email"
-            placeholder="E-mail"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            style={styles.input}
-            disabled={loading}
-          />
-          <input
-            type="password"
-            placeholder="Senha"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
-            disabled={loading}
-          />
+            <form onSubmit={handleSubmit} style={styles.form}>
+              <input
+                type="text"
+                placeholder="Nome completo"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                style={styles.input}
+                disabled={loading}
+              />
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={styles.input}
+                disabled={loading}
+              />
+              <input
+                type="password"
+                placeholder="Senha (mín. 6 caracteres)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={styles.input}
+                disabled={loading}
+              />
+              <button type="submit" style={styles.button} disabled={loading}>
+                {loading ? "Criando..." : "Criar Admin Master"}
+              </button>
+            </form>
+          </>
+        ) : (
+          <>
+            <h2 style={styles.headerText}>🔐 Login - Sinergia Pro</h2>
+            <p style={styles.subtitleText}>
+              Acesse sua conta
+            </p>
 
-          <button type="submit" style={styles.loginButton} disabled={loading}>
-            {loading ? 'Entrando...' : 'Entrar'}
-          </button>
-        </form>
+            {error && <p style={styles.errorMessage}>{error}</p>}
 
-        <p style={styles.registerText}>
-          Primeira vez?{' '}
-          <Link to="/register" style={styles.registerLink}>Cadastre-se</Link>
-        </p>
+            <form onSubmit={handleSubmit} style={styles.form}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                style={styles.input}
+                disabled={loading}
+              />
+              <input
+                type="password"
+                placeholder="Senha"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={styles.input}
+                disabled={loading}
+              />
+              <button type="submit" style={styles.button} disabled={loading}>
+                {loading ? "Entrando..." : "Fazer Login"}
+              </button>
+            </form>
 
-        <Link to="/forgot-password" style={styles.forgotPasswordLink}>
-          Recuperar Senha
-        </Link>
+            <p style={styles.footerText}>
+              Não tem uma conta? <Link to="/register" style={styles.link}>Registre-se aqui</Link>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
@@ -101,69 +208,70 @@ function LoginPage() {
 
 const styles = {
   container: {
-    minHeight: '100vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    background: 'linear-gradient(135deg, #D5C0EA, #8A2BE2, #FFDAB9)',
-    padding: '20px',
-    boxSizing: 'border-box',
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: "100vh",
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
   },
   card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: '40px',
-    borderRadius: '20px',
-    maxWidth: '450px',
-    width: '100%',
-    textAlign: 'center',
+    background: "white",
+    padding: "40px",
+    borderRadius: "10px",
+    boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)",
+    width: "100%",
+    maxWidth: "400px",
   },
   headerText: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    marginBottom: '20px',
-    color: '#333',
+    textAlign: "center",
+    color: "#333",
+    marginBottom: "10px",
+    fontSize: "28px",
+    fontWeight: "bold",
   },
-  errorMessage: {
-    color: '#f44336',
-    marginBottom: '15px',
+  subtitleText: {
+    textAlign: "center",
+    color: "#666",
+    marginBottom: "20px",
+    fontSize: "14px",
   },
   form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '15px',
-    marginBottom: '20px',
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px",
   },
   input: {
-    padding: '12px 15px',
-    borderRadius: '10px',
-    border: '1px solid #ddd',
-    fontSize: '16px',
+    padding: "12px",
+    border: "1px solid #ddd",
+    borderRadius: "5px",
+    fontSize: "14px",
   },
-  loginButton: {
-    padding: '15px',
-    background: '#8A2BE2',
-    border: 'none',
-    borderRadius: '10px',
-    color: 'white',
-    fontSize: '18px',
-    cursor: 'pointer',
-    marginTop: '10px',
+  button: {
+    padding: "12px",
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    fontSize: "16px",
   },
-  registerText: {
-    marginTop: '20px',
-    fontSize: '14px',
+  errorMessage: {
+    color: "red",
+    textAlign: "center",
+    marginBottom: "15px",
+    fontSize: "14px",
   },
-  registerLink: {
-    color: '#8A2BE2',
-    fontWeight: 'bold',
-    textDecoration: 'none',
+  footerText: {
+    textAlign: "center",
+    marginTop: "20px",
+    fontSize: "14px",
+    color: "#666",
   },
-  forgotPasswordLink: {
-    marginTop: '10px',
-    display: 'block',
-    color: '#8A2BE2',
-    fontSize: '14px',
-    textDecoration: 'none',
+  link: {
+    color: "#667eea",
+    textDecoration: "none",
+    fontWeight: "bold",
   },
 };
 

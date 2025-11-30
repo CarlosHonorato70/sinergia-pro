@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
@@ -7,6 +7,7 @@ function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [userType, setUserType] = useState("patient");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -36,19 +37,19 @@ function RegisterPage() {
     setLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:8000/register",
+        "http://localhost:8000/api/auth/register",
         {
-          name,
+          full_name: name,
           email,
           password,
+          user_type: userType,
         }
       );
 
-      // Se for o primeiro usuário, ele será admin_master
-      if (response.data.role === "admin_master") {
-        setSuccess("Parabéns! Você é o Administrador Master! Faça login agora.");
+      if (userType === "therapist") {
+        setSuccess("✅ Cadastro realizado! Você é um Terapeuta aguardando aprovação do Admin.");
       } else {
-        setSuccess("Cadastro realizado com sucesso! Aguarde aprovação do Administrador Master.");
+        setSuccess("✅ Cadastro realizado! Você é um Paciente aguardando aprovação do Admin.");
       }
 
       setTimeout(() => {
@@ -74,6 +75,7 @@ function RegisterPage() {
     <div style={styles.container}>
       <div style={styles.card}>
         <h2 style={styles.headerText}>Criar uma conta</h2>
+        <p style={styles.subtitle}>Registre-se como Paciente ou Terapeuta</p>
 
         {error && <p style={styles.errorMessage}>{error}</p>}
         {success && <p style={styles.successMessage}>{success}</p>}
@@ -112,6 +114,17 @@ function RegisterPage() {
             disabled={loading}
           />
 
+          {/* Seletor de tipo de usuário */}
+          <select
+            value={userType}
+            onChange={(e) => setUserType(e.target.value)}
+            style={styles.select}
+            disabled={loading}
+          >
+            <option value="patient">👤 Sou um Paciente</option>
+            <option value="therapist">👨‍⚕️ Sou um Terapeuta</option>
+          </select>
+
           <button type="submit" style={styles.registerButton} disabled={loading}>
             {loading ? "Cadastrando..." : "Cadastrar"}
           </button>
@@ -149,8 +162,13 @@ const styles = {
   headerText: {
     fontSize: "24px",
     fontWeight: "bold",
-    marginBottom: "20px",
+    marginBottom: "10px",
     color: "#333",
+  },
+  subtitle: {
+    fontSize: "14px",
+    color: "#666",
+    marginBottom: "20px",
   },
   errorMessage: {
     color: "#f44336",
@@ -173,6 +191,14 @@ const styles = {
     borderRadius: "10px",
     border: "1px solid #ddd",
     fontSize: "16px",
+  },
+  select: {
+    padding: "12px 15px",
+    borderRadius: "10px",
+    border: "1px solid #ddd",
+    fontSize: "16px",
+    backgroundColor: "#fff",
+    cursor: "pointer",
   },
   registerButton: {
     padding: "15px",

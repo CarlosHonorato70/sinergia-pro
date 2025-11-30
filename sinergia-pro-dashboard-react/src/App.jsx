@@ -4,7 +4,7 @@ import { AuthProvider } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminMasterLayout from "./components/AdminMasterLayout";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminMasterDashboard from "./pages/AdminMasterDashboard";
 import AdminMasterUsuarios from "./pages/AdminMasterUsuarios";
 import AdminMasterTerapeutas from "./pages/AdminMasterTerapeutas";
 import AdminMasterPacientes from "./pages/AdminMasterPacientes";
@@ -27,11 +27,19 @@ function App() {
           {/* Admin Master Routes */}
           <Route
             path="/admin/master"
-            element={<AdminDashboard />}
+            element={
+              <AdminMasterLayout>
+                <AdminMasterDashboard />
+              </AdminMasterLayout>
+            }
           />
           <Route
             path="/admin/master/dashboard"
-            element={<AdminDashboard />}
+            element={
+              <AdminMasterLayout>
+                <AdminMasterDashboard />
+              </AdminMasterLayout>
+            }
           />
           <Route
             path="/admin/master/usuarios"
